@@ -326,7 +326,8 @@ async function handleRequest(req, res) {
       return json(res, 400, { error: { message: 'messages array is required', type: 'invalid_request', code: 'missing_messages' } });
     }
 
-    const injected = injectXMLReasoning(messages);
+    const reasoning = body.reasoning_effort;
+    const injected = reasoning ? injectXMLReasoning(messages) : messages;
     const trimmed = [...injected];
     trimMessages(trimmed, config.maxContextTokens);
 
@@ -376,7 +377,7 @@ async function handleRequest(req, res) {
         };
         res.write(`data: ${JSON.stringify(obj)}\n\n`);
       };
-      if (parsed.reasoningContent) {
+      if (reasoning && parsed.reasoningContent) {
         chunk({ role: 'assistant', reasoning_content: parsed.reasoningContent }, null);
       }
       chunk({ role: 'assistant', content: parsed.content || '' }, null);
@@ -395,7 +396,7 @@ async function handleRequest(req, res) {
         message: {
           role: 'assistant',
           content: parsed.content || '',
-          ...(parsed.reasoningContent ? { reasoning_content: parsed.reasoningContent } : {}),
+          ...(reasoning && parsed.reasoningContent ? { reasoning_content: parsed.reasoningContent } : {}),
         },
         finish_reason: finishReason,
       }],
