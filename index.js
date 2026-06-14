@@ -48,10 +48,16 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-const REASONING_SYSTEM_PROMPT = `Before replying, you must think through your answer step by step.
-Write your reasoning inside <thinking>...</thinking> XML tags.
-After your reasoning, write your final answer inside <answer>...</answer> XML tags.
-Do not output anything outside these tags.`;
+const REASONING_SYSTEM_PROMPT = `You MUST follow this format exactly for every response:
+
+<thinking>
+Your step-by-step reasoning here. Think through the problem before answering.
+</thinking>
+<answer>
+Your final answer here. This is what the user will see. Be direct and concise.
+</answer>
+
+Both tags are required. Never skip the <answer> tag.`;
 
 function injectXMLReasoning(messages) {
   if (!messages || messages.length === 0) return [];
@@ -181,9 +187,13 @@ function parseResponse(text) {
   let reasoningContent = null;
   let content = cleaned;
 
-  if (thinkingMatch || answerMatch) {
-    reasoningContent = thinkingMatch ? thinkingMatch[1].trim() : null;
-    content = answerMatch ? answerMatch[1].trim() : cleaned.trim();
+  if (thinkingMatch) {
+    reasoningContent = thinkingMatch[1].trim();
+  }
+  if (answerMatch) {
+    content = answerMatch[1].trim();
+  } else if (thinkingMatch) {
+    content = cleaned.replace(thinkingMatch[0], '').trim();
   }
 
   return { reasoningContent, content, stats };
