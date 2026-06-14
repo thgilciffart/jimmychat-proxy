@@ -181,19 +181,22 @@ function parseResponse(text) {
     } catch (_) { /* ignore malformed stats */ }
   }
 
-  const thinkingMatch = cleaned.match(/<thinking>([\s\S]*?)<\/thinking>/i);
-  const answerMatch = cleaned.match(/<answer>([\s\S]*?)<\/answer>/i);
+  const thinkingTag = cleaned.match(/<thinking>([\s\S]*?)<\/thinking>/i);
+  const answerTag = cleaned.match(/<answer>([\s\S]*?)(?:<\/answer>|$)/i);
 
   let reasoningContent = null;
   let content = cleaned;
 
-  if (thinkingMatch) {
-    reasoningContent = thinkingMatch[1].trim();
-  }
-  if (answerMatch) {
-    content = answerMatch[1].trim();
-  } else if (thinkingMatch) {
-    content = cleaned.replace(thinkingMatch[0], '').trim();
+  if (answerTag) {
+    content = answerTag[1].trim();
+    const beforeAnswer = cleaned.slice(0, cleaned.indexOf(answerTag[0]));
+    reasoningContent = beforeAnswer.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
+    if (!reasoningContent && thinkingTag) {
+      reasoningContent = thinkingTag[1].trim();
+    }
+  } else if (thinkingTag) {
+    reasoningContent = thinkingTag[1].trim();
+    content = cleaned.replace(thinkingTag[0], '').trim();
   }
 
   return { reasoningContent, content, stats };
