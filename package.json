@@ -1,0 +1,15 @@
+{
+  "name": "jimmychat-proxy",
+  "version": "1.0.0",
+  "description": "HTTP proxy for chatjimmy",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "bash test.sh"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "license": "MIT"
+}
